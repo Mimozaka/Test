@@ -1,0 +1,58 @@
+#include <stdio.>
+#include <stdlib.>
+#include <unistd.>
+#include <sys/types.>
+#define NMAX 10
+
+int main ( void ) {
+int p[2] ;
+char c ;
+if ( pipe ( p ) == -1 ) {
+	fprintf ( stderr, "Erreur : tube\n" ) ;
+	exit(1) ;
+}
+
+pid_t pid = fork();
+if ( pid == -1 ) {
+	fprintf ( stderr, "Erreur : fork\n");
+	exit(2);
+}
+if ( pid > 0 ) { /* père */
+	close( p[STDIN_FILENO] ) ;
+	int i=0;
+	c='a';
+while(i < NMAX) {
+	write(p[STDOUT_FILENO], &c, 1);
+	i++;
+	fprintf(stderr, "Transmis %d chars\n",i);
+	}
+
+close ( p[STDOUT_FILENO] ) ;
+wait ( 0 ) ;
+} else { /* fils */
+
+char chaine[NMAX+1];
+
+int i = 0 ;
+
+close ( p[1] ) ;
+
+while (i < NMAX) {
+
+read ( p[STDIN_FILENO], &chaine[i], 1);
+
+i++;
+
+}
+
+//close ( p[STDIN_FILENO] ) ;
+
+chaine[i] ='\0';
+
+printf(" Chaine recue = %s \n",chaine);
+
+}
+
+return 0;
+
+}
